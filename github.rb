@@ -1,6 +1,6 @@
 require 'octokit'
+require 'shellwords'
 
-Octokit.auto_traversal = true
 module Github
    ##
    # Get a global git config property
@@ -31,7 +31,7 @@ module Github
    ##
    def self.api(authorization_info = {})
       # Let Octokit handle pagination automagically for us.
-      Octokit.auto_traversal = true
+      Octokit.auto_paginate = true
       # Defaults
       authorization_info = {
          :scopes => ['repo'],

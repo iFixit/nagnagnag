@@ -1,8 +1,7 @@
 require 'rubygems'
 require 'octokit'
-require 'github.rb'
-
-Octokit.auto_traversal = true
+require 'optparse'
+require './github.rb'
 
 class Nagnagnag 
    def initialize
