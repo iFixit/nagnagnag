@@ -2,11 +2,22 @@ require 'rubygems'
 require 'octokit'
 require 'optparse'
 require './github.rb'
+require './models/issue.rb'
 
 class Nagnagnag 
    def initialize
       @options = parse_options
       @client = Github.api
+   end
+
+   def nagnagnag
+      Issue.old_issues do |issue|
+         if last_comment_was_me(issue)
+            issue.close
+         else
+            issue.comment_on_issue(issue)
+         end
+      end
    end
 
    def parse_options
@@ -56,4 +67,4 @@ class Nagnagnag
    end
 end
 
-Nagnagnag.new
+Nagnagnag.new.nagnagnag
