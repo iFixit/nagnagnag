@@ -1,1 +1,2 @@
 #!/bin/env ruby
+require_relative '../nagnagnag.rb'
