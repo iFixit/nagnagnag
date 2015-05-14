@@ -10,12 +10,17 @@ class Nagnagnag
       @client = Github.api
    end
 
+   def github
+      @client
+   end
+
    def nagnagnag
-      Issue.old_issues do |issue|
-         if last_comment_was_me(issue)
+      me = Github::config("github.user")
+      Issue.old_issues.each do |issue|
+         if issue.last_comment.by(me)
             issue.close
          else
-            issue.comment_on_issue(issue)
+            issue.comment_on_issue()
          end
       end
    end
