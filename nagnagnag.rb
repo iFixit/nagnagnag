@@ -38,7 +38,7 @@ class Nagnagnag
       @options = OptionParser.new do |opts|
          opts.banner = "Usage: nagnagnag --repo=user/repo"
        
-         opts.on("-r", "--repo=REPO", "github  username/repository") do |v|
+         opts.on("-r", "--repo REPO", "github username/repository") do |v|
             options[:repo] = v.strip
             Log.debug "Operating on repo #{options[:repo]}"
          end

@@ -1,6 +1,5 @@
 require 'octokit'
 require 'shellwords'
-require './log.rb'
 
 module Github
    ##

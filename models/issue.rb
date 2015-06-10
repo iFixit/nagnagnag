@@ -46,7 +46,7 @@ class Issue
                   Log.debug "Issue ##{issue.number} is stale"
                end
             else
-               Log.info "Found #{all.length} stable issues"
+               Log.info "Found #{all.length} stale issues"
                return all
             end
          end
@@ -58,9 +58,10 @@ class Issue
 
    def last_comment
       Log.info "Loading last_comment for issue ##{@issue.number}"
-      comments = Nagnagnag.Github.api.issue_comments(@repo, @issue.number, {
+      comments = Github.api.issue_comments(@repo, @issue.number, {
          :sort => :created,
-         :direction => :desc
+         :direction => :desc,
+         :per_page => 1
       })
       comments[0] && Comment.new(comments[0])
    end
