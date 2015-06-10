@@ -3,6 +3,7 @@ require 'octokit'
 require 'optparse'
 require './github.rb'
 require './models/issue.rb'
+require './models/comment.rb'
 require './log.rb'
 
 class Nagnagnag 

@@ -31,12 +31,15 @@ class Issue
          :state      => :open,
          :sort       => :updated,
          :direction  => :asc,
-         :asignee    => "*"
+         :asignee    => "*",
+         :per_page   => 100
       })
 
       batch = issues
+      response = Github.api.last_response
+
       all = []
-      while true
+      while batch.length > 0
          Log.info "Loaded batch of #{batch.length} issues"
          batch.each do |issue_data|
             issue = Issue.new(repo, issue_data)
@@ -50,8 +53,13 @@ class Issue
                return all
             end
          end
-         if batch.length != 0
-            batch = Octokit.last_response.rels[:next].get.data
+         if response.rels[:next]
+            Log.info "Loading next page of issues"
+            response = response.rels[:next].get
+            batch = response.data
+         else
+            Log.info "Reached the end of the issues"
+            break;
          end
       end
    end

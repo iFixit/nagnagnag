@@ -6,4 +6,8 @@ class Comment
    def by(github_user)
       @comment.user.login == github_user
    end
+
+   def user
+      @comment.user
+   end
 end

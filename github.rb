@@ -15,9 +15,7 @@ module Github
    # Get an instance of the Octokit API class
    ##
    def self.api()
-      # Let Octokit handle pagination automagically for us.
-      Octokit.auto_paginate = true
-      OctokitWrapper.new(self::get_authentication())
+      @client ||= OctokitWrapper.new(self::get_authentication())
    end
 
    ##
@@ -54,6 +52,7 @@ end
 
 class OctokitWrapper
    def initialize(*args)
+      Log.debug "Creating new OctokitWrapper"
       @client = Octokit::Client.new(*args)
    end
 
