@@ -16,8 +16,8 @@ class Nagnagnag
 
    def nagnagnag
       me = Github::config("github.user")
-      Issue.old_issues.each do |issue|
-         if issue.last_comment.by(me)
+      Issue.old_issues(@options[:repo]).each do |issue|
+         if issue.last_comment_was_by(me)
             issue.close
          else
             issue.comment_on_issue()
