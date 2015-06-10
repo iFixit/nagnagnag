@@ -1,19 +1,15 @@
 require 'octokit'
 require 'shellwords'
+require './log.rb'
 
 module Github
    ##
-   # Get a global git config property
+   # Get a git config property
    ##
    def self.config(property)
-      `git config --global #{property.to_s.shellescape}`.strip
-   end
-
-   ##
-   # Get a local (to the repo) git config property
-   ##
-   def self.local_config(property)
-      `git config #{property.to_s.shellescape}`.strip
+      value = `git config #{property.to_s.shellescape}`.strip
+      Log.debug "Reading git config #{property.to_s}: #{value}"
+      return value
    end
 
    ##
