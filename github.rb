@@ -18,68 +18,26 @@ module Github
 
    ##
    # Get an instance of the Octokit API class
-   #
-   # Authorization info is the structure from here:
-   # http://developer.github.com/v3/oauth/#create-a-new-authorization
-   #
-   # something like this:
-   # {
-   #     :scopes => ['repo'],
-   #     :note => "some cool project",
-   #     :note_url => "http://homepage-for-project.com"
-   # }
    ##
-   def self.api(authorization_info = {})
+   def self.api()
       # Let Octokit handle pagination automagically for us.
       Octokit.auto_paginate = true
-      # Defaults
-      authorization_info = {
-         :scopes => ['repo'],
-         :note => "nagnagnag -- The GH issues bot that nags you and closes issues",
-         :note_url => "https://github.com/ifixit/nagnagnag"
-      }.merge(authorization_info)
-      OctokitWrapper.new(self::get_authentication(authorization_info))
+      OctokitWrapper.new(self::get_authentication())
    end
 
-   def self.get_authentication(authorization_info)
-      username = self::config("github.user")
+   ##
+   # Return a Hash with an :access_token or die trying.
+   def self.get_authentication()
       token    = self::config("github.token")
       if !token.empty?
          return {:access_token => token}
       else
-         return self::request_authorization(authorization_info)
+         abort "
+This script needs authorized access to the API.
+Visit https://github.com/settings/tokens,
+generate a token and store it with:
+git config github.token 'thetoken'"
       end
-   end
-
-   ##
-   # Returns a hash containing the username and github oauth token
-   #
-   # Prompts the user for credentials if the token isn't stored in git config
-   ##
-   def self.request_authorization(authorization_info)
-      puts "Authorizing..."
-
-      username ||= Readline.readline("github username: ", true)
-      password   = ask("github password: ") { |q| q.echo = false }
-
-      octokit = OctokitWrapper.new(:login => username, :password => password)
-
-      auth = octokit.authorizations.find {|auth|
-         note = auth['note']
-         note && note.include?(authorization_info[:note])
-      }
-
-      auth = auth || octokit.create_authorization(authorization_info)
-
-      success =
-         system("git config --global github.user #{username}") &&
-         system("git config --global github.token #{auth[:token]}")
-
-      unless success
-         die("Couldn't set git config")
-      end
-
-      return {:login => username, :oauth_token => auth[:token]}
    end
 
    ##
@@ -108,7 +66,7 @@ class OctokitWrapper
       begin
          return @client.send(meth,*args)
       rescue Octokit::Error => e
-         die("=" * 80 + "\nGithub API Error\n" + e.to_s)
+         abort("=" * 80 + "\nGithub API Error\n" + e.to_s)
       end
    end
 end
