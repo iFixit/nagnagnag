@@ -35,7 +35,7 @@ class Nagnagnag
          :exempt_label => "stay open"
       }
 
-      @options = OptionParser.new do |opts|
+      options_parser = OptionParser.new do |opts|
          opts.banner = "Usage: nagnagnag --repo=user/repo"
        
          opts.on("-r", "--repo REPO", "github username/repository") do |v|
@@ -65,15 +65,17 @@ class Nagnagnag
          end
 
          opts.on_tail("-h", "--help", "Show this message") do
-            puts opts
-            exit
-         end
-
-         if options[:repo].nil? 
-            puts opts
+            puts opts.help
             exit 1
          end
-      end.parse!
+      end
+
+      options_parser.parse!
+
+      if options[:repo].nil? 
+         puts options_parser.help
+         exit 2
+      end
       options
    end
 end
