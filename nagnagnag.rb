@@ -5,11 +5,18 @@ require './github.rb'
 require './models/issue.rb'
 require './models/comment.rb'
 require './log.rb'
+require './config.rb'
 
 class Nagnagnag 
+   attr_accessor :config
+
    def initialize
-      @options = parse_options
       @client = Github.api
+      @@instance = self
+   end
+
+   def self.config
+      @config ||= Config.from_commandline
    end
 
    def github
@@ -18,7 +25,7 @@ class Nagnagnag
 
    def nagnagnag
       me = Github::config("github.user")
-      Issue.old_issues(@options[:repo]).each do |issue|
+      Issue.old_issues(self.config.repo).each do |issue|
          Log.debug "Looking at comments on issue ##{issue.number}"
          if issue.last_comment_was_by(me)
             issue.close
@@ -26,58 +33,6 @@ class Nagnagnag
             issue.comment_on_issue()
          end
       end
-   end
-
-   def parse_options
-      options = {
-         :repo => nil,
-         :no_activity_days => 30,
-         :close_after_days => 30,
-         :exempt_label => "stay open"
-      }
-
-      options_parser = OptionParser.new do |opts|
-         opts.banner = "Usage: nagnagnag --repo=user/repo"
-       
-         opts.on("-r", "--repo REPO", "github username/repository") do |v|
-            options[:repo] = v.strip
-            Log.debug "Operating on repo #{options[:repo]}"
-         end
-
-         opts.on("--no-activity-days=DAYS", OptionParser::DecimalInteger,
-                       "Number of days to wait after the last activity",
-                       "on an issue before commenting.") do |v|
-            options[:no_activity_days] = v
-            Log.debug "Setting no-activity-days to #{options[:no_activity_days]}"
-         end
-
-         opts.on("--close-after-days=DAYS", OptionParser::DecimalInteger,
-                       "Number of days to wait after the last comment",
-                       "from this bot before closing an issue.") do |v|
-            options[:close_after_days] = v
-            Log.debug "Setting close-after-days to #{options[:close_after_days]}"
-         end
-
-         opts.on("--exempt-label=LABEL", String,
-                       "Name of issue label that will prevent issues",
-                       "from being examined or modified by this bot.") do |v|
-            options[:exempt_label] = v
-            Log.debug "Exempting issues with label #{options[:exempt_label]}"
-         end
-
-         opts.on_tail("-h", "--help", "Show this message") do
-            puts opts.help
-            exit 1
-         end
-      end
-
-      options_parser.parse!
-
-      if options[:repo].nil? 
-         puts options_parser.help
-         exit 2
-      end
-      options
    end
 end
 

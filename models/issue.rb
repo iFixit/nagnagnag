@@ -12,7 +12,7 @@ class Issue
    end
 
    def is_old
-      @issue.updated_at < (Time.now - 30 * 24 * 60 * 60)
+      @issue.updated_at < Nagnagnag.config.no_activity_days
    end
 
    def number
@@ -21,7 +21,7 @@ class Issue
 
    ##
    # Returns array of Issue objects for all issues that haven't been updated
-   # in @options[:no_activity_days]
+   # in Nagnagnag.config.no_activity_days
    ##
    def self.old_issues(repo)
       Log.info "Loading issues and selecting only the stale"
