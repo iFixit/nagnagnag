@@ -10,4 +10,8 @@ class Comment
    def user
       @comment.user
    end
+
+   def body_contains(str)
+      @comment.body && @comment.body.include?(str)
+   end
 end

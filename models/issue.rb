@@ -8,7 +8,9 @@ class Issue
       Log.debug "Checking author of last comment on issue ##{@issue.number}"
       comment = last_comment
       Log.debug "Author: #{comment && comment.user.login || '[unknown]'}"
-      comment && comment.user.login == github_user
+      comment &&
+      comment.user.login == github_user &&
+      comment.body_contains(intro_text)
    end
 
    def is_old
@@ -24,7 +26,7 @@ class Issue
    # in Nagnagnag.config.no_activity_days
    ##
    def self.old_issues(repo)
-      Log.info "Loading issues and selecting only the stale"
+      Log.info "Loading issues and selecting only the stale ones"
       issues = Github.api.issues(repo, {
          # all = don't limit to issues assigned to me
          # :filter     => :all,
@@ -62,6 +64,7 @@ class Issue
             break;
          end
       end
+      all
    end
 
    def last_comment
@@ -76,9 +79,30 @@ class Issue
 
    def close
       Log.info "Closing issue ##{@issue.number}"
+      Github.api.close_issue(@repo, @issue.number)
    end
 
    def comment_on_issue
       Log.info "Commenting on issue ##{@issue.number}"
+      Github.api.add_comment(@repo, @issue.number, warning_message)
+   end
+
+   protected
+   def warning_message
+      days = Nagnagnag.config.no_activity_days
+      <<-COMMENT
+      #{intro_text}
+This issue hasen't seen any activity in #{days} days.
+It will be automatically closed after another #{days} days unless #{exempt_label_message} there are further comments.
+      COMMENT
+   end
+
+   def exempt_label_message
+      label = Nagnagnag.config.exempt_label
+      return label ? "the \"#{label} label is added or" : ""
+   end
+
+   def intro_text
+      "From Nagnagnag:"
    end
 end
