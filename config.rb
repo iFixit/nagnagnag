@@ -1,12 +1,15 @@
-class Config
+class Configuration
    attr_accessor :repo,
                  :no_activity_days,
-                 :close_after_days,
                  :exempt_label
 
    def initialize
-      no_activity_days = 30
-      close_after_days = 30
+      self.no_activity_days = 30
+      Log.debug(self.inspect)
+   end
+
+   def no_activity_seconds
+      no_activity_days * 86400
    end
 
    ##

@@ -8,15 +8,13 @@ require './log.rb'
 require './config.rb'
 
 class Nagnagnag 
-   attr_accessor :config
-
    def initialize
       @client = Github.api
       @@instance = self
    end
 
    def self.config
-      @config ||= Config.from_commandline
+      @config ||= Configuration.from_commandline
    end
 
    def github
@@ -25,7 +23,7 @@ class Nagnagnag
 
    def nagnagnag
       me = Github::config("github.user")
-      Issue.old_issues(self.config.repo).each do |issue|
+      Issue.old_issues(Nagnagnag.config.repo).each do |issue|
          Log.debug "Looking at comments on issue ##{issue.number}"
          if issue.last_comment_was_by(me)
             issue.close

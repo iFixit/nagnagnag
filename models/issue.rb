@@ -12,7 +12,7 @@ class Issue
    end
 
    def is_old
-      @issue.updated_at < Nagnagnag.config.no_activity_days
+      @issue.updated_at < (Time.now - Nagnagnag.config.no_activity_seconds)
    end
 
    def number
