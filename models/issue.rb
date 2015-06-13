@@ -79,12 +79,16 @@ class Issue
 
    def close
       Log.info "Closing issue ##{@issue.number}"
-      Github.api.close_issue(@repo, @issue.number)
+      if !Nagnagnag.config.dry_run
+         Github.api.close_issue(@repo, @issue.number)
+      end
    end
 
    def comment_on_issue
       Log.info "Commenting on issue ##{@issue.number}"
-      Github.api.add_comment(@repo, @issue.number, warning_message)
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, warning_message)
+      end
    end
 
    protected

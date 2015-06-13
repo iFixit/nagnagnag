@@ -1,7 +1,8 @@
 class Configuration
    attr_accessor :repo,
                  :no_activity_days,
-                 :exempt_label
+                 :exempt_label,
+                 :dry_run
 
    def initialize
       self.no_activity_days = 30
@@ -33,6 +34,11 @@ class Configuration
             Log.debug "Setting no-activity-days to #{config.no_activity_days}"
          end
 
+         opts.on("--dry-run",
+                 "Don't actually write anything to github, only read") do |v|
+            config.dry_run = v
+            Log.debug "Setting dry-run"
+         end
 
          opts.on("--exempt-label=LABEL", String,
                        "Name of issue label that will prevent issues",
