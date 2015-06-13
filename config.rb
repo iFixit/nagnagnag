@@ -6,7 +6,6 @@ class Configuration
 
    def initialize
       self.no_activity_days = 30
-      Log.debug(self.inspect)
    end
 
    def no_activity_seconds

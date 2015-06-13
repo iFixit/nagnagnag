@@ -9,6 +9,8 @@ require './config.rb'
 
 class Nagnagnag 
    def initialize
+      # Mostly to ensure printing help is the first thing we do
+      Nagnagnag.config
       @client = Github.api
       @@instance = self
    end
