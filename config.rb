@@ -1,15 +1,15 @@
 class Configuration
    attr_accessor :repo,
-                 :no_activity_days,
+                 :stale_after_days,
                  :exempt_label,
                  :dry_run
 
    def initialize
-      self.no_activity_days = 30
+      self.stale_after_days = 30
    end
 
-   def no_activity_seconds
-      no_activity_days * 86400
+   def stale_after_seconds
+      stale_after_days * 86400
    end
 
    ##
@@ -26,11 +26,11 @@ class Configuration
             Log.debug "Operating on repo #{config.repo}"
          end
 
-         opts.on("--no-activity-days=DAYS", OptionParser::DecimalInteger,
+         opts.on("--stale-after-days DAYS", OptionParser::DecimalInteger,
                        "Number of days to wait after the last activity",
                        "on an issue before commenting or closing.") do |v|
-            config.no_activity_days = v
-            Log.debug "Setting no-activity-days to #{config.no_activity_days}"
+            config.stale_after_days = v
+            Log.debug "Setting stale_after_days to #{config.stale_after_days}"
          end
 
          opts.on("--dry-run",
@@ -39,7 +39,7 @@ class Configuration
             Log.debug "Setting dry-run"
          end
 
-         opts.on("--exempt-label=LABEL", String,
+         opts.on("--exempt-label LABEL", String,
                        "Name of issue label that will prevent issues",
                        "from being examined or modified by this bot.") do |v|
             config.exempt_label = v

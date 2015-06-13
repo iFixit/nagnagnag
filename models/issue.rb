@@ -14,7 +14,7 @@ class Issue
    end
 
    def is_old
-      @issue.updated_at < (Time.now - Nagnagnag.config.no_activity_seconds)
+      @issue.updated_at < (Time.now - Nagnagnag.config.stale_after_days)
    end
 
    def is_pull_request
@@ -33,7 +33,7 @@ class Issue
 
    ##
    # Returns array of Issue objects for all issues that haven't been updated
-   # in Nagnagnag.config.no_activity_days
+   # in Nagnagnag.config.stale_after_days
    ##
    def self.old_issues(repo)
       Log.info "Loading issues and selecting only the stale ones"
@@ -56,7 +56,7 @@ class Issue
          batch.each do |issue_data|
             issue = Issue.new(repo, issue_data)
             if issue.is_old
-               continue if issue.is_pull_request
+               next if issue.is_pull_request
                if issue.is_exempt
                   Log.debug "Issue ##{issue.number} is exempt"
                else
@@ -106,7 +106,7 @@ class Issue
 
    protected
    def warning_message
-      days = Nagnagnag.config.no_activity_days
+      days = Nagnagnag.config.stale_after_days
       str = <<-COMMENT
          **#{intro_text}**
          This issue hasen't seen any activity in #{days} days.
