@@ -17,6 +17,16 @@ class Issue
       @issue.updated_at < (Time.now - Nagnagnag.config.no_activity_seconds)
    end
 
+   def is_pull_request
+      @issue.pull_request
+   end
+
+   def is_exempt
+      exempt_label = Nagnagnag.config.exempt_label
+      exempt_label &&
+      @issue.labels.any? { |label| label.name == exempt_label }
+   end
+
    def number
       @issue && @issue.number
    end
@@ -46,7 +56,10 @@ class Issue
          batch.each do |issue_data|
             issue = Issue.new(repo, issue_data)
             if issue.is_old
-               if !issue_data[:pull_request]
+               continue if issue.is_pull_request
+               if issue.is_exempt
+                  Log.debug "Issue ##{issue.number} is exempt"
+               else
                   all << issue
                   Log.debug "Issue ##{issue.number} is stale"
                end
