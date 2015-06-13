@@ -90,16 +90,18 @@ class Issue
    protected
    def warning_message
       days = Nagnagnag.config.no_activity_days
-      <<-COMMENT
-      #{intro_text}
-This issue hasen't seen any activity in #{days} days.
-It will be automatically closed after another #{days} days unless #{exempt_label_message} there are further comments.
+      str = <<-COMMENT
+         **#{intro_text}**
+         This issue hasen't seen any activity in #{days} days.
+         It will be automatically closed after another #{days} days
+         unless #{exempt_label_message} there are further comments.
       COMMENT
+      str.gsub(/\s+/, ' ')
    end
 
    def exempt_label_message
       label = Nagnagnag.config.exempt_label
-      return label ? "the \"#{label} label is added or" : ""
+      return label ? "the `#{label}` label is added or" : ""
    end
 
    def intro_text
