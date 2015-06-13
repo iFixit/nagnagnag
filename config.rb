@@ -28,17 +28,11 @@ class Configuration
 
          opts.on("--no-activity-days=DAYS", OptionParser::DecimalInteger,
                        "Number of days to wait after the last activity",
-                       "on an issue before commenting.") do |v|
+                       "on an issue before commenting or closing.") do |v|
             config.no_activity_days = v
             Log.debug "Setting no-activity-days to #{config.no_activity_days}"
          end
 
-         opts.on("--close-after-days=DAYS", OptionParser::DecimalInteger,
-                       "Number of days to wait after the last comment",
-                       "from this bot before closing an issue.") do |v|
-            config.close_after_days = v
-            Log.debug "Setting close-after-days to #{config.close_after_days}"
-         end
 
          opts.on("--exempt-label=LABEL", String,
                        "Name of issue label that will prevent issues",
