@@ -3,7 +3,11 @@
 All you ever do is **nag nag nag**! "Are you still interested?" "Is this still
 important?" "Does anyone care?"
 
-This is a github issues bot, meant to be run once per day or so.
+### What it does
+**Automatically comments on and closes
+old github issues if no one responds.**
+
+This is a github issues bot, meant to be run once per day or so. **
 
 Give it a token, point it at a github repo and it will go comment on issues
 with no activity in the last `[--stale-after-days]` days,
