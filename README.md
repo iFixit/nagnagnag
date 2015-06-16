@@ -25,6 +25,7 @@ A specific label `[--exempt-label]` can exempt issues from auto-closing.
         $ git config github.token sdfadsflasdfasdfa
 
 1. Run *nagnagnag*
+   Note: it produces a detailed log on STDOUT, don't be alarmed.
 
         sage: nagnagnag --repo=user/repo
            -r, --repo REPO                  github username/repository
