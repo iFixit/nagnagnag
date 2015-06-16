@@ -17,6 +17,9 @@ before closing the issue if there has been no activity.
 A specific label `[--exempt-label]` can exempt issues from auto-closing.
 
 ### Usage
+1. Install dependencies
+
+        $ bundle install
 
 1. Configure your github username and api token
    (from https://github.com/settings/tokens)
