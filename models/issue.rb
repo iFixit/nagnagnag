@@ -47,36 +47,23 @@ class Issue
          :per_page   => 100
       })
 
-      batch = issues
-      response = Github.api.last_response
-
       all = []
-      while batch.length > 0
-         Log.info "Loaded batch of #{batch.length} issues"
-         batch.each do |issue_data|
-            issue = Issue.new(repo, issue_data)
-            if issue.is_old
-               next if issue.is_pull_request
-               if issue.is_exempt
-                  Log.debug "Issue ##{issue.number} is exempt"
-               else
-                  all << issue
-                  Log.debug "Issue ##{issue.number} is stale"
-               end
+      Github.each(issues) do |issue_data|
+         issue = Issue.new(repo, issue_data)
+         if issue.is_old
+            next if issue.is_pull_request
+            if issue.is_exempt
+               Log.debug "Issue ##{issue.number} is exempt"
             else
-               Log.info "Found #{all.length} stale issues"
-               return all
+               all << issue
+               Log.debug "Issue ##{issue.number} is stale"
             end
-         end
-         if response.rels[:next]
-            Log.info "Loading next page of issues"
-            response = response.rels[:next].get
-            batch = response.data
          else
-            Log.info "Reached the end of the issues"
-            break;
+            Log.info "Found #{all.length} stale issues"
+            return all
          end
       end
+      Log.info "Found #{all.length} stale issues"
       all
    end
 
