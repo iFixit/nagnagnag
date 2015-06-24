@@ -127,10 +127,11 @@ class Issue
    protected
    def warning_message
       days = Nagnagnag.config.stale_after_days
+      close_days = Nagnagnag.config.close_after_days
       str = <<-COMMENT
          **#{intro_text}**
-         This issue hasen't seen any activity in #{days} days.
-         It will be automatically closed after another #{days} days
+         This issue hasn't seen any activity in #{days} days.
+         It will be automatically closed after another #{close_days} days
          unless #{exempt_label_message} there are further comments.
       COMMENT
       str.gsub(/\s+/, ' ')
