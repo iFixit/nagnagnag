@@ -14,4 +14,8 @@ class Comment
    def body_contains(str)
       @comment.body && @comment.body.include?(str)
    end
+
+   def date
+      @comment.created_at
+   end
 end

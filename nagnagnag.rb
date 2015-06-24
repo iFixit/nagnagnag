@@ -28,9 +28,11 @@ class Nagnagnag
       Issue.old_issues(Nagnagnag.config.repo).each do |issue|
          Log.debug "Looking at comments on issue ##{issue.number}"
          if issue.last_comment_was_by(me)
-            issue.close
-         else
-            issue.comment_on_issue()
+            if issue.should_close
+               issue.close
+            end
+         elsif issue.should_comment
+            issue.comment_on_issue
          end
       end
    end
