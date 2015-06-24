@@ -48,6 +48,26 @@ git config github.token 'thetoken'"
          raise "remote.origin.url in git config but be a github url"
       end
    end
+
+   ##
+   # Given an array returned by any of the endpoints (Github.issues
+   # for instance) this will iterate over each entry, doing the
+   # pagination as needed until there are no more items or the caller
+   # calls `break`
+   def self.each(batch)
+      response = Github.api.last_response
+      while batch.length > 0
+         batch.each do |item|
+            yield item
+         end
+         if response.rels[:next]
+            response = response.rels[:next].get
+            batch = response.data
+         else
+            return;
+         end
+      end
+   end
 end
 
 class OctokitWrapper

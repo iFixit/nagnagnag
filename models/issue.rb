@@ -13,8 +13,27 @@ class Issue
       comment.body_contains(intro_text)
    end
 
-   def is_old
-      @issue.updated_at < (Time.now - Nagnagnag.config.stale_after_days)
+   ##
+   # Returns true if the last comment was made more than
+   # `--stale-after-days` ago
+   def should_comment
+      last_activity_date < (Time.now - Nagnagnag.config.stale_after_seconds)
+   end
+
+   ##
+   # Returns true if the last comment was made more than
+   # `--close-after-days` ago
+   def should_close
+      last_activity_date < (Time.now - Nagnagnag.config.close_after_seconds)
+   end
+
+   ##
+   # Returns true if there has been no activity on the issue whatsoever
+   # in the last min(close-after-days, stale-after-days) days.
+   def no_recent_activity
+      config = Nagnagnag.config
+      old_after_seconds = [config.close_after_seconds, config.stale_after_seconds].min
+      @issue.updated_at < (Time.now - old_after_seconds)
    end
 
    def is_pull_request
@@ -47,47 +66,48 @@ class Issue
          :per_page   => 100
       })
 
-      batch = issues
-      response = Github.api.last_response
-
       all = []
-      while batch.length > 0
-         Log.info "Loaded batch of #{batch.length} issues"
-         batch.each do |issue_data|
-            issue = Issue.new(repo, issue_data)
-            if issue.is_old
-               next if issue.is_pull_request
-               if issue.is_exempt
-                  Log.debug "Issue ##{issue.number} is exempt"
-               else
-                  all << issue
-                  Log.debug "Issue ##{issue.number} is stale"
-               end
+      Github.each(issues) do |issue_data|
+         issue = Issue.new(repo, issue_data)
+         if issue.no_recent_activity
+            next if issue.is_pull_request
+            if issue.is_exempt
+               Log.debug "Issue ##{issue.number} is exempt"
             else
-               Log.info "Found #{all.length} stale issues"
-               return all
+               all << issue
+               Log.debug "Issue ##{issue.number} is stale"
             end
-         end
-         if response.rels[:next]
-            Log.info "Loading next page of issues"
-            response = response.rels[:next].get
-            batch = response.data
          else
-            Log.info "Reached the end of the issues"
-            break;
+            Log.info "Found #{all.length} stale issues"
+            return all
          end
       end
+      Log.info "Found #{all.length} stale issues"
       all
    end
 
+   def last_activity_date
+      (last_comment && last_comment.date) || @issue.created_at
+   end
+
    def last_comment
+      @last_comment ||= get_last_comment
+   end
+
+   def get_last_comment
       Log.info "Loading last_comment for issue ##{@issue.number}"
-      comments = Github.api.issue_comments(@repo, @issue.number, {
-         :sort => :created,
-         :direction => :desc,
-         :per_page => 1
-      })
-      comments[0] && Comment.new(comments[0])
+      comments = get_all_comments
+      comments.last && Comment.new(comments.last)
+   end
+
+   def get_all_comments
+      comments = Github.api.issue_comments(@repo, @issue.number)
+
+      all = []
+      Github.each(comments) do |comment|
+         all << comment
+      end
+      all
    end
 
    def close
