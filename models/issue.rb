@@ -62,7 +62,7 @@ class Issue
          :state      => :open,
          :sort       => :updated,
          :direction  => :asc,
-         :asignee    => "*",
+         :assignee   => "*",
          :per_page   => 100
       })
 
