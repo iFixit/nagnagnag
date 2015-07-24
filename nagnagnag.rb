@@ -25,15 +25,25 @@ class Nagnagnag
 
    def nagnagnag
       me = Github::config("github.user")
-      Issue.old_issues(Nagnagnag.config.repo).each do |issue|
+      issues = Issue.get_issues(Nagnagnag.config.repo)
+
+      Issue.old_issues(issues, Nagnagnag.config.repo).each do |issue|
          Log.debug "Looking at comments on issue ##{issue.number}"
          if issue.last_comment_was_by(me)
             if issue.should_close
                issue.close
+               Log.debug "Should close #{issue.number}"
             end
          elsif issue.should_comment
-            issue.comment_on_issue
+            issue.comment_stale_warning
+            Log.debug "Should comment #{issue.number}"
          end
+      end
+
+      Issue.unscored_issues(issues, Nagnagnag.config.repo).each do |issue|
+         Log.debug "Looking at scores on issue ##{issue.number}"
+         issue.comment_score_reminder
+         Log.debug "Should comment #{issue.number}"
       end
    end
 end
