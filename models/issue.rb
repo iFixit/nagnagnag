@@ -142,12 +142,38 @@ class Issue
       all
    end
 
+   ##
+   # Returns array of Issue objects with an empty description
+   ##
+   def self.empty_issues(issues, repo)
+      Log.info "Selecting issues with deadlines"
+      all = []
+      Github.each(issues) do |issue_data|
+         issue = Issue.new(repo, issue_data)
+         next if issue.is_pull_request
+
+         if issue.description.empty?
+            all << issue
+         end
+      end
+      all
+   end
+
    def last_activity_date
       (last_comment && last_comment.date) || @issue.created_at
    end
 
    def last_comment
       @last_comment ||= get_last_comment
+   end
+
+   def description
+      @description ||= get_description
+   end
+
+   def get_description
+      Log.info "Loading description for issue ##{@issue.number}"
+      @issue[:body]
    end
 
    def get_last_comment
