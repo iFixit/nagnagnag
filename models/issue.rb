@@ -49,6 +49,15 @@ class Issue
       @issue.labels.any? { |label| label.name == 's-Under Review' }
    end
 
+   def has_issue
+      keywords = ["close", "closes", "closed", "fix", "fixes", "fixed", "resolve", "resolves", "resolved", "description", "connect to", "connects to", "connected to", "connects"]
+
+      pattern = '\b' + '(' + keywords.join("|") + ')' + '\s+' + '#[0-9]+' + '\b'
+      re = Regexp.new(pattern, Regexp::IGNORECASE)
+
+      !(re =~ description).nil?
+   end
+
    def is_pull_request
       @issue.pull_request
    end
@@ -167,6 +176,23 @@ class Issue
 
          if issue.description.empty?
             all << issue
+         end
+      end
+      all
+   end
+
+   ##
+   # Returns array of Issue objects which are pull requests without an
+   # associated issue
+   ##
+   def self.disconnected_pulls(pulls, repo)
+      Log.info "Selecting pulls without an pull"
+      all = []
+      Github.each(pulls) do |pull_data|
+         pull = Issue.new(repo, pull_data)
+
+         unless pull.has_issue
+            all << pull
          end
       end
       all
