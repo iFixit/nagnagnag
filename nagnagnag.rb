@@ -60,6 +60,12 @@ class Nagnagnag
             issue.comment_milestone_reminder
          end
       end
+
+      all_pulls = Issue.get_pulls(Nagnagnag.config.repo)
+      Issue.disconnected_pulls(all_pulls, Nagnagnag.config.repo).each do |pull|
+         Log.debug "Looking for related issue on pull ##{pull.number}"
+         issue.comment_no_issue_warning
+      end
    end
 end
 

@@ -262,6 +262,13 @@ class Issue
       end
    end
 
+   def comment_no_issue_warning
+      Log.info "Commenting no issue warning on issue ##{@issue.number}"
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, no_issue_warning)
+      end
+   end
+
    def comment_score_reminder
       Log.info "Commenting score reminder on issue ##{@issue.number}"
       if !Nagnagnag.config.dry_run
@@ -285,6 +292,17 @@ class Issue
          This issue hasn't seen any activity in #{days} days.
          It will be automatically closed after another #{close_days} days
          unless #{exempt_label_message} there are further comments.
+      COMMENT
+      str.gsub(/\s+/, ' ')
+   end
+
+   protected
+   def no_issue_warning
+      str = <<-COMMENT
+         **#{intro_text}**
+         This pull request is not associated with an issue. Create an issue,
+         label it with a difficulty score, and associate it with this pull
+         request.
       COMMENT
       str.gsub(/\s+/, ' ')
    end
