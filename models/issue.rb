@@ -121,6 +121,23 @@ class Issue
       all
    end
 
+   ##
+   # Returns array of Issue objects on a milestone with a due date
+   ##
+   def self.due_issues(issues, repo)
+      Log.info "Selecting issues with deadlines"
+      all = []
+      Github.each(issues) do |issue_data|
+         issue = Issue.new(repo, issue_data)
+         next if issue.is_pull_request
+
+         unless issue.due_on.nil?
+            all << issue
+         end
+      end
+      all
+   end
+
    def last_activity_date
       (last_comment && last_comment.date) || @issue.created_at
    end
@@ -143,6 +160,11 @@ class Issue
          all << comment
       end
       all
+   end
+
+   def due_on
+      time = @issue[:milestone][:due_on]
+      time.nil? ? nil : time.to_date
    end
 
    def close
