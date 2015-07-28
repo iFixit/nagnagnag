@@ -45,6 +45,10 @@ class Issue
       end
    end
 
+   def has_pull
+      @issue.labels.any? { |label| label.name == 's-Under Review' }
+   end
+
    def is_pull_request
       @issue.pull_request
    end
@@ -167,6 +171,11 @@ class Issue
       time.nil? ? nil : time.to_date
    end
 
+   def due_soon
+      urgent_after = due_on - Nagnagnag.config.urgent_after_days
+      Date.today >= urgent_after
+   end
+
    def close
       Log.info "Closing issue ##{@issue.number}"
       if !Nagnagnag.config.dry_run
@@ -185,6 +194,13 @@ class Issue
       Log.info "Commenting score reminder on issue ##{@issue.number}"
       if !Nagnagnag.config.dry_run
          Github.api.add_comment(@repo, @issue.number, score_reminder)
+      end
+   end
+
+   def comment_milestone_reminder
+      Log.info "Commenting milestone reminder on issue ##{@issue.number}"
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, milestone_reminder)
       end
    end
 
@@ -207,6 +223,16 @@ class Issue
          **#{intro_text}**
          This issue does not have a difficulty score. Please add a label
          estimating the difficulty of this project.
+      COMMENT
+      str.gsub(/\s+/, ' ')
+   end
+
+   protected
+   def milestone_reminder
+      str = <<-COMMENT
+         **#{intro_text}**
+         This issue is on a milestone which is due on #{due_on},
+         but it is not yet associated with a pull request.
       COMMENT
       str.gsub(/\s+/, ' ')
    end

@@ -25,9 +25,9 @@ class Nagnagnag
 
    def nagnagnag
       me = Github::config("github.user")
-      issues = Issue.get_issues(Nagnagnag.config.repo)
+      all_issues = Issue.get_issues(Nagnagnag.config.repo)
 
-      Issue.old_issues(issues, Nagnagnag.config.repo).each do |issue|
+      Issue.old_issues(all_issues, Nagnagnag.config.repo).each do |issue|
          Log.debug "Looking at comments on issue ##{issue.number}"
          if issue.last_comment_was_by(me)
             if issue.should_close
@@ -40,13 +40,18 @@ class Nagnagnag
          end
       end
 
-      Issue.unscored_issues(issues, Nagnagnag.config.repo).each do |issue|
+      Issue.unscored_issues(all_issues, Nagnagnag.config.repo).each do |issue|
          Log.debug "Looking at scores on issue ##{issue.number}"
          issue.comment_score_reminder
          Log.debug "Should comment #{issue.number}"
       end
 
       milestone_issues = Issue.get_issues(Nagnagnag.config.repo, {:milestone => '*'})
+      Issue.due_issues(milestone_issues, Nagnagnag.config.repo).each do |issue|
+         if issue.due_soon && !issue.has_pull
+            issue.comment_milestone_reminder
+         end
+      end
    end
 end
 
