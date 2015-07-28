@@ -79,6 +79,19 @@ class Issue
       Github.api.issues(repo, options)
    end
 
+   def self.get_pulls(repo, options = {})
+      options = {
+         :state      => :open,
+         :sort       => :updated,
+         :direction  => :asc,
+         :assignee   => "*",
+         :per_page   => 100
+      }.merge(options)
+
+      Log.info "Loading all pulls"
+      Github.api.pull_requests(repo, options)
+   end
+
    def self.unscored_issues(issues, repo)
       Log.info "Selecting unscored issues"
       all = []
