@@ -45,6 +45,8 @@ class Nagnagnag
          issue.comment_score_reminder
          Log.debug "Should comment #{issue.number}"
       end
+
+      milestone_issues = Issue.get_issues(Nagnagnag.config.repo, {:milestone => '*'})
    end
 end
 

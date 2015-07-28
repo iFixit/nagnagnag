@@ -62,17 +62,17 @@ class Issue
    ##
    # Returns array of Issue objects
    ##
-   def self.get_issues(repo)
-      Log.info "Loading all issues"
-      Github.api.issues(repo, {
-         # all = don't limit to issues assigned to me
-         # :filter     => :all,
+   def self.get_issues(repo, options = {})
+      options = {
          :state      => :open,
          :sort       => :updated,
          :direction  => :asc,
          :assignee   => "*",
          :per_page   => 100
-      })
+      }.merge(options)
+
+      Log.info "Loading all issues"
+      Github.api.issues(repo, options)
    end
 
    def self.unscored_issues(issues, repo)
