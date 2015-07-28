@@ -46,6 +46,13 @@ class Nagnagnag
          Log.debug "Should comment #{issue.number}"
       end
 
+      Issue.empty_issues(all_issues, Nagnagnag.config.repo).each do |issue|
+         Log.debug "Looking at description of issue ##{issue.number}"
+         if !issue.has_pull
+            issue.comment_empty_warning
+         end
+      end
+
       milestone_issues = Issue.get_issues(Nagnagnag.config.repo, {:milestone => '*'})
       Issue.due_issues(milestone_issues, Nagnagnag.config.repo).each do |issue|
          Log.debug "Looking at milestone due date on issue ##{issue.number}"

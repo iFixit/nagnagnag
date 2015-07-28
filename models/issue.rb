@@ -216,6 +216,13 @@ class Issue
       end
    end
 
+   def comment_empty_warning
+      Log.info "Commenting empty warning on issue ##{@issue.number}"
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, empty_message)
+      end
+   end
+
    def comment_score_reminder
       Log.info "Commenting score reminder on issue ##{@issue.number}"
       if !Nagnagnag.config.dry_run
@@ -239,6 +246,15 @@ class Issue
          This issue hasn't seen any activity in #{days} days.
          It will be automatically closed after another #{close_days} days
          unless #{exempt_label_message} there are further comments.
+      COMMENT
+      str.gsub(/\s+/, ' ')
+   end
+
+   protected
+   def empty_message
+      str = <<-COMMENT
+         **#{intro_text}**
+         Please add a description to this issue.
       COMMENT
       str.gsub(/\s+/, ' ')
    end
