@@ -41,13 +41,14 @@ class Nagnagnag
       end
 
       Issue.unscored_issues(all_issues, Nagnagnag.config.repo).each do |issue|
-         Log.debug "Looking at scores on issue ##{issue.number}"
+         Log.debug "Looking for score on issue ##{issue.number}"
          issue.comment_score_reminder
          Log.debug "Should comment #{issue.number}"
       end
 
       milestone_issues = Issue.get_issues(Nagnagnag.config.repo, {:milestone => '*'})
       Issue.due_issues(milestone_issues, Nagnagnag.config.repo).each do |issue|
+         Log.debug "Looking at milestone due date on issue ##{issue.number}"
          if issue.due_soon && !issue.has_pull
             issue.comment_milestone_reminder
          end
