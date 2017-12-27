@@ -3,6 +3,7 @@ class Configuration
                  :stale_after_days,
                  :close_after_days,
                  :exempt_label,
+                 :closed_label,
                  :dry_run
 
    def initialize
@@ -60,6 +61,13 @@ class Configuration
                        "from being examined or modified by this bot.") do |v|
             config.exempt_label = v
             Log.debug "Exempting issues with label #{config.exempt_label}"
+         end
+
+         opts.on("--closed-label LABEL", String,
+                       "Name of issue label that be added",
+                       "when issues are closed.") do |v|
+            config.closed_label = v
+            Log.debug "Adding label #{config.closed_label} to issues that get closed"
          end
 
          opts.on_tail("-h", "--help", "Show this message") do
