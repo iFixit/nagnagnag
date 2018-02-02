@@ -40,4 +40,6 @@ A specific label `[--exempt-label]` can exempt issues from auto-closing.
                                           only read
              --exempt-label LABEL         Name of issue label that will prevent issues
                                           from being examined or modified by this bot.
+             --closed-label LABEL         Name of issue label that be added
+                                          when issues are closed.
          -h, --help                       Show this message

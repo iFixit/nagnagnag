@@ -114,6 +114,11 @@ class Issue
       Log.info "Closing issue ##{@issue.number}"
       if !Nagnagnag.config.dry_run
          Github.api.close_issue(@repo, @issue.number)
+         if Nagnagnag.config.closed_label
+            label = Nagnagnag.config.closed_label
+            Log.info "Adding label #{label} to issue ##{@issue.number}"
+            Github.api.add_labels_to_an_issue(@repo, @issue.number, [label])
+         end
       end
    end
 
