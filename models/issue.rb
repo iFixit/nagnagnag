@@ -36,6 +36,28 @@ class Issue
       @issue.updated_at < (Time.now - old_after_seconds)
    end
 
+   ##
+   # Returns true if an issue has a numeric label
+   def has_score
+      @issue.labels.any? do |label|
+         val = Integer(label.name) rescue nil
+         !!val
+      end
+   end
+
+   def has_pull
+      @issue.labels.any? { |label| label.name == 's-Under Review' }
+   end
+
+   def has_issue
+      keywords = ["close", "closes", "closed", "fix", "fixes", "fixed", "resolve", "resolves", "resolved", "description", "connect to", "connects to", "connected to", "connects"]
+
+      pattern = '\b' + '(' + keywords.join("|") + ')' + '\s+' + '#[0-9]+' + '\b'
+      re = Regexp.new(pattern, Regexp::IGNORECASE)
+
+      !(re =~ description).nil?
+   end
+
    def is_pull_request
       @issue.pull_request
    end
@@ -51,21 +73,60 @@ class Issue
    end
 
    ##
-   # Returns array of Issue objects for all issues that haven't been updated
-   # in Nagnagnag.config.stale_after_days
+   # Returns array of Issue objects
    ##
-   def self.old_issues(repo)
-      Log.info "Loading issues and selecting only the stale ones"
-      issues = Github.api.issues(repo, {
-         # all = don't limit to issues assigned to me
-         # :filter     => :all,
+   def self.get_issues(repo, options = {})
+      options = {
          :state      => :open,
          :sort       => :updated,
          :direction  => :asc,
-         :asignee    => "*",
+         :assignee   => "*",
          :per_page   => 100
-      })
+      }.merge(options)
 
+      Log.info "Loading all issues"
+      Github.api.issues(repo, options)
+   end
+
+   def self.get_pulls(repo, options = {})
+      options = {
+         :state      => :open,
+         :sort       => :updated,
+         :direction  => :asc,
+         :assignee   => "*",
+         :per_page   => 100
+      }.merge(options)
+
+      Log.info "Loading all pulls"
+      Github.api.pull_requests(repo, options)
+   end
+
+   def self.unscored_issues(issues, repo)
+      Log.info "Selecting unscored issues"
+      all = []
+      Github.each(issues) do |issue_data|
+         issue = Issue.new(repo, issue_data)
+         next if issue.is_pull_request
+
+         unless issue.has_score
+            if issue.is_exempt
+               Log.debug "Issue ##{issue.number} is exempt"
+            else
+               all << issue
+               Log.debug "Issue ##{issue.number} does not have a score"
+            end
+         end
+      end
+      Log.info "Found #{all.length} unscored issues"
+      all
+   end
+
+   ##
+   # Returns array of Issue objects for all issues that haven't been updated
+   # in Nagnagnag.config.stale_after_days
+   ##
+   def self.old_issues(issues, repo)
+      Log.info "Selecting stale issues"
       all = []
       Github.each(issues) do |issue_data|
          issue = Issue.new(repo, issue_data)
@@ -86,12 +147,72 @@ class Issue
       all
    end
 
+   ##
+   # Returns array of Issue objects on a milestone with a due date
+   ##
+   def self.due_issues(issues, repo)
+      Log.info "Selecting issues with deadlines"
+      all = []
+      Github.each(issues) do |issue_data|
+         issue = Issue.new(repo, issue_data)
+         next if issue.is_pull_request
+
+         unless issue.due_on.nil?
+            all << issue
+         end
+      end
+      all
+   end
+
+   ##
+   # Returns array of Issue objects with an empty description
+   ##
+   def self.empty_issues(issues, repo)
+      Log.info "Selecting issues with deadlines"
+      all = []
+      Github.each(issues) do |issue_data|
+         issue = Issue.new(repo, issue_data)
+         next if issue.is_pull_request
+
+         if issue.description.empty?
+            all << issue
+         end
+      end
+      all
+   end
+
+   ##
+   # Returns array of Issue objects which are pull requests without an
+   # associated issue
+   ##
+   def self.disconnected_pulls(pulls, repo)
+      Log.info "Selecting pulls without an pull"
+      all = []
+      Github.each(pulls) do |pull_data|
+         pull = Issue.new(repo, pull_data)
+
+         unless pull.has_issue
+            all << pull
+         end
+      end
+      all
+   end
+
    def last_activity_date
       (last_comment && last_comment.date) || @issue.created_at
    end
 
    def last_comment
       @last_comment ||= get_last_comment
+   end
+
+   def description
+      @description ||= get_description
+   end
+
+   def get_description
+      Log.info "Loading description for issue ##{@issue.number}"
+      @issue[:body]
    end
 
    def get_last_comment
@@ -110,6 +231,16 @@ class Issue
       all
    end
 
+   def due_on
+      time = @issue[:milestone][:due_on]
+      time.nil? ? nil : time.to_date
+   end
+
+   def due_soon
+      urgent_after = due_on - Nagnagnag.config.urgent_after_days
+      Date.today >= urgent_after
+   end
+
    def close
       Log.info "Closing issue ##{@issue.number}"
       if !Nagnagnag.config.dry_run
@@ -122,10 +253,38 @@ class Issue
       end
    end
 
-   def comment_on_issue
-      Log.info "Commenting on issue ##{@issue.number}"
+   def comment_stale_warning
+      Log.info "Commenting stale warning on issue ##{@issue.number}"
       if !Nagnagnag.config.dry_run
          Github.api.add_comment(@repo, @issue.number, warning_message)
+      end
+   end
+
+   def comment_empty_warning
+      Log.info "Commenting empty warning on issue ##{@issue.number}"
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, empty_message)
+      end
+   end
+
+   def comment_no_issue_warning
+      Log.info "Commenting no issue warning on issue ##{@issue.number}"
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, no_issue_warning)
+      end
+   end
+
+   def comment_score_reminder
+      Log.info "Commenting score reminder on issue ##{@issue.number}"
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, score_reminder)
+      end
+   end
+
+   def comment_milestone_reminder
+      Log.info "Commenting milestone reminder on issue ##{@issue.number}"
+      if !Nagnagnag.config.dry_run
+         Github.api.add_comment(@repo, @issue.number, milestone_reminder)
       end
    end
 
@@ -138,6 +297,46 @@ class Issue
          This issue hasn't seen any activity in #{days} days.
          It will be automatically closed after another #{close_days} days
          unless #{exempt_label_message} there are further comments.
+      COMMENT
+      str.gsub(/\s+/, ' ')
+   end
+
+   protected
+   def no_issue_warning
+      str = <<-COMMENT
+         **#{intro_text}**
+         This pull request is not associated with an issue. Create an issue,
+         label it with a difficulty score, and associate it with this pull
+         request.
+      COMMENT
+      str.gsub(/\s+/, ' ')
+   end
+
+   protected
+   def empty_message
+      str = <<-COMMENT
+         **#{intro_text}**
+         Please add a description to this issue.
+      COMMENT
+      str.gsub(/\s+/, ' ')
+   end
+
+   protected
+   def score_reminder
+      str = <<-COMMENT
+         **#{intro_text}**
+         This issue does not have a difficulty score. Please add a label
+         estimating the difficulty of this project.
+      COMMENT
+      str.gsub(/\s+/, ' ')
+   end
+
+   protected
+   def milestone_reminder
+      str = <<-COMMENT
+         **#{intro_text}**
+         This issue is on a milestone which is due on #{due_on},
+         but it is not yet associated with a pull request.
       COMMENT
       str.gsub(/\s+/, ' ')
    end

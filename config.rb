@@ -2,6 +2,7 @@ class Configuration
    attr_accessor :repo,
                  :stale_after_days,
                  :close_after_days,
+                 :urgent_after_days,
                  :exempt_label,
                  :closed_label,
                  :dry_run
@@ -9,6 +10,7 @@ class Configuration
    def initialize
       self.stale_after_days = 30
       self.close_after_days = 7
+      self.urgent_after_days = 5
    end
 
    def stale_after_seconds
@@ -47,6 +49,14 @@ class Configuration
                        "#{config.close_after_days}") do |v|
             config.close_after_days = v
             Log.debug "Setting close_after_days to #{config.close_after_days}"
+         end
+
+         opts.on("--urgent-after-days DAYS", OptionParser::DecimalInteger,
+                       "Distance from milestone due date after which",
+                       "an issue should get a reminder comment. Default: " +
+                       "#{config.urgent_after_days}") do |v|
+            config.urgent_after_days = v
+            Log.debug "Setting urgent_after_days to #{config.urgent_after_days}"
          end
 
          opts.on("--dry-run",
