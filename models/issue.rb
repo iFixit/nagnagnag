@@ -4,13 +4,10 @@ class Issue
       @issue = issue
    end
 
-   def last_comment_was_by(github_user)
-      Log.debug "Checking author of last comment on issue ##{@issue.number}"
+   def last_comment_was_from_nagnagnag()
+      Log.debug "Checking if last comment on issue ##{@issue.number} was by nagnagnag"
       comment = last_comment
-      Log.debug "Author: #{comment && comment.user.login || '[unknown]'}"
-      comment &&
-      comment.user.login == github_user &&
-      comment.body_contains(intro_text)
+      comment && comment.body_contains(intro_text)
    end
 
    ##

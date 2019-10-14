@@ -24,10 +24,9 @@ class Nagnagnag
    end
 
    def nagnagnag
-      me = Github::config("github.user")
       Issue.old_issues(Nagnagnag.config.repo).each do |issue|
          Log.debug "Looking at comments on issue ##{issue.number}"
-         if issue.last_comment_was_by(me)
+         if issue.last_comment_was_from_nagnagnag
             if issue.should_close
                issue.close
             end
